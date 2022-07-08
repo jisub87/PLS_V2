@@ -62,29 +62,7 @@ def get_pls_prediction_data(store_res, SALE_DT, STOR_CD):
     else:
         print('데이터 없음')
         return {}, {}
-def get_pls_prediction_test_data(res2, SALE_DT, STOR_CD):
-    STOR_CD = int(STOR_CD)
-    test = common_utils.read_data(os.path.join('data', 'check_data.p'))
-    test['SALE_DT'] = test['SALE_DT'].astype(str).str.strip()
-    test['STOR_CD'] = test['STOR_CD'].astype(int)
-    check_test = test[(test['STOR_CD'] == STOR_CD) & (test['SALE_DT'] == SALE_DT)]
-    print(check_test.columns)
-    print(res2.columns)
-    check_columns = [x for x in check_test.columns if x in res2.columns]
-    y_list = [x for x in check_columns if
-              x in ['와퍼패티', '버거패티', '스테이크패티', '언양식불고기패티', '도넛치킨패티', 'BK새우패티', '롱치킨패티', '킹치킨패티',
-                    '뉴올리언스치킨패티', 'BK치즈패티', '플랜트패티', 'BK뉴치킨패티', '통다리치킨패티']]
-    check_pred = pd.merge(res2, check_test[check_columns], on='ORD_TIME', how='left', suffixes=['', '_pred'])
-    pred_diff_data = pd.DataFrame()
-    pred_diff_data['PRODUCT'] = check_pred['PRODUCT']
-    pred_diff_data['ORD_TIME'] = check_pred['ORD_TIME']
-    pred_diff_data['SALE_DT'] = SALE_DT
-    pred_diff_data['STOR_CD'] = STOR_CD
-    for col in ['SALE_AMT'] + y_list:
-        pred_diff_data[col] = check_pred[col + '_pred'] - check_pred[col]
-    res3 = pred_diff_data
-    res4 = res3.describe()
-    return res3, res4
+
 
 
 if __name__ == '__main__':
@@ -122,13 +100,3 @@ if __name__ == '__main__':
     st.subheader("Predction Results")
     st.write('시간별 패티수량, 매출, 피크타임 등 예측정보를 노출')
     st.dataframe(res2)
-
-    if len(res2)>=1:
-        res3, res4 = get_pls_prediction_test_data(res2, SALE_DT, STOR_CD)
-        st.subheader("Difference Comparison: Predction - Actual")
-        st.write('예측된 패티수와 실제 사용된 패티수의 차이를 비교')
-        st.dataframe(res3)
-
-        st.subheader("Statistics of Difference Comparison")
-        st.write('차이에 대한 통계적 정보')
-        st.dataframe(res4)
